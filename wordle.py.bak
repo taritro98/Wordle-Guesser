@@ -1,0 +1,52 @@
+#Define your word list here with variable as wordlist
+#Code Block 1
+
+# Matcher Function returns number code
+# 1 - Letter exists and is in the right position
+# 2 - Letter exists but is in the wrong position
+# 3 - Letter is not present in the word
+
+def fn_Matcher(theWord, nextGuess): 
+  match=''
+  for i in range(5):
+    if nextGuess[i]==theWord[i]:
+      match+='1'
+    elif nextGuess[i] in theWord:
+      match+='2'
+    else:
+      match+='3'
+  return match
+
+def fn_Wordle_Player(intmatcher):
+  #participant logic for new guess 
+  #Code Block 2
+  return nextGuess
+
+if __name__ == '__main__':
+  theWord=input('Enter word of the day: ').upper()
+  while(len(theWord)!=5 or (theWord not in wordlist)):
+    theWord=(input('"Please input a valid 5 letter word: ')).upper()
+  for i in range(6):
+    if i==0:
+      nextGuess='<firstguess>'.upper() #hardcode first guess or modify to generate guess  #Code Block 3
+    else:
+      nextGuess = fn_Wordle_Player(intMatcher).upper()
+    if nextGuess in wordlist and len(nextGuess)==5:  #wordlist defined by participant above
+      if nextGuess == theWord:
+        print(nextGuess)
+        print("Word found on attempt ",i+1)
+        break
+      else:
+        intMatcher = fn_Matcher(theWord, nextGuess)
+        print(nextGuess)
+        print("Word does not match, Feedback pattern returned :",intMatcher)
+    else:
+      print(nextGuess, "Not a valid word") 
+      break
+  else:
+    print("Word not found. Correct word is",theWord)
+
+
+
+
+
