@@ -10,6 +10,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 from wordfreq import word_frequency
+from entropy_calc import entropy_calc
 
 
 # Matcher Function returns number code
@@ -94,19 +95,31 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
 
     return list(filtered_wordlist)
 
+def get_wrd_maxentropy(entropylst, filtered_list):
+	# TODO Complete this function
+
+	for comb in entropylst:
+		maxentropywrd = filter(lambda w: all(list(comb) for comb in entropylst),filtered_list)
+	
+	return maxentropywrd
 
 def get_next_guess(corpos_dict, filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
 
-    # hist = Counter( "".join(word_list) )
+	# TODO: Entropy strategy 
+	print("Filtered list", filtered_list)
+	# entropylst = entropy_calc(filtered_list)
+	# nextguess = get_wrd_maxentropy(entropylst, filtered_list)
 
-    print("Filtered list", filtered_list)
-    return sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
-    # return wordlist[0]
+	# Guess highest occuring word
+	nextguess = sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
+	# return wordlist[0]
     # return random.choice(filtered_list)
-
-
+	
+	return nextguess
+	
+    
 def input_gen(wordlist):
     return random.choice(wordlist).upper()
 
