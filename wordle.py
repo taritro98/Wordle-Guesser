@@ -2,7 +2,7 @@
 # Define your word list here with variable as wordlist
 with open("English.txt", "r") as fr:
     wordlist = list(
-        map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
+        map(str.upper, filter(lambda word: len(word) == 5 and '\'' not in word, fr.read().splitlines()))
     )
 
 # Code Block 1
@@ -99,7 +99,7 @@ def get_next_guess(corpos_dict, filtered_list):
     # word_list = list( filter( filter_using_alphabets, words))
     # hist = Counter( "".join(word_list) )
 
-    
+    print("Filtered list", filtered_list)
     return sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
     # return wordlist[0]
     # return random.choice(filtered_list)
@@ -111,9 +111,9 @@ def input_gen(wordlist):
 
 def stat(res):
     print("Output Stats ===> ", res)
-    plt.hist(res)
-    plt.title("Average attempts: "+ str(float(sum(res)/len(res))))
-    plt.show()
+    #plt.hist(res)
+    #plt.title("Average attempts: "+ str(float(sum(res)/len(res))))
+    #plt.show()
 
 
 # Custom Main function
@@ -122,12 +122,7 @@ if __name__ == "__main__":
     # Stat Results
     res = []
 
-    # with open("English.txt", "r") as fr:
-    #     wordlist = list(
-    #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
-    #     )
-
-    for _ in range(500):
+    for _ in range(1):
 
         corpos_dict = {}    # Correct position dict
         gl_dict     = {}    # Good letters dict

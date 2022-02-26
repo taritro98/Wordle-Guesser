@@ -1,1 +1,25 @@
 2 Rank - Check for positioning
+
+Approach 1
+1. Get frequency dictionary of letters
+2. Top 5 get and put weights (weight is frequency)
+3. Assign weights to all words
+4. Try to ignore words with feedback 1 and 2, 
+
+#3. Check for all 5 letter combination word present
+#4. 5-1 descending order check
+
+Approach 2
+Recursive entropy calculation
+
+B-20 F-15 G-11 C-9 Z-5 most occurring
+
+BFGCZ - all combinations
+BFGC - all combinations
+
+F G
+
+B
+
+BACUP
+FRICK
