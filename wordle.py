@@ -2,7 +2,12 @@
 # Define your word list here with variable as wordlist
 with open("English.txt", "r") as fr:
     wordlist = list(
-        map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
+        map(
+            str.upper,
+            filter(
+                lambda word: len(word) == 5 and "'" not in word, fr.read().splitlines()
+            ),
+        )
     )
 
 # Code Block 1
@@ -106,10 +111,15 @@ def get_next_guess(filtered_list):
     if len(filtered_list) == 1:
         return filtered_list[0]
 
-    if len(filtered_list) < 175:
-        layer = build_tree(filtered_list, recurse=5 if len(filtered_list) < 20 else 0)
+    if len(filtered_list) < 500:
+        layer = build_tree(filtered_list, recurse=5 if len(filtered_list) < 25 else 1)
         branches = sorted(
-            layer.items(), key=lambda p: (p[1].get(LAYERS_KEY, 99), len(p[1]))
+            layer.items(),
+            key=lambda p: (
+                p[1].get(LAYERS_KEY, 99),
+                -len(p[1]),
+                word_frequency(p[0], "en"),
+            ),
         )
         # print("BRANCHES: ", json.dumps(branches, indent=4))
         return branches[0][0]
@@ -163,8 +173,15 @@ def build_tree(corpus, recurse=2):
             layers_counts = []
             for key in tree_node:
                 tree_node[key] = build_tree(tree_node[key], recurse=(recurse - 1))
+                # print("KKEY: ", key)
                 if LAYERS_KEY in tree_node[key]:
                     layers_counts.append(tree_node[key][LAYERS_KEY] + 1)
+                elif isinstance(tree_node[key], dict):
+                    for k, v in tree_node[key].items():
+                        # print(v.get(LAYERS_KEY, 99))
+                        layers_counts.append(v.get(LAYERS_KEY, 99) + 1)
+                        # for d in v.values():
+                        #     print( d[LAYERS_KEY] )
                 else:
                     layers_counts.append(99)
 
@@ -180,9 +197,10 @@ def input_gen(wordlist):
 
 def stat(res):
     print("Output Stats ===> ", res)
-    plt.hist(res)
-    plt.title("Average attempts: " + str(float(sum(res) / len(res))))
-    plt.show()
+    print("Average attempts: " + str(float(sum(res) / len(res))))
+    # plt.hist(res)
+    # plt.title("Average attempts: " + str(float(sum(res) / len(res))))
+    # plt.show()
 
 
 # Custom Main function
@@ -252,7 +270,7 @@ if __name__ == "__main__":
 # corpus = wordlist.copy()
 
 # if __name__ == "__main__":
-#     theWord = "HILDA"
+#     theWord = "HOODS"
 #     # theWord = input_gen(wordlist)
 #     for i in range(6):
 #         if i == 0:
