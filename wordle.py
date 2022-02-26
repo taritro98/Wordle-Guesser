@@ -19,6 +19,7 @@ import json
 from wordfreq import word_frequency
 from string import ascii_uppercase
 from statistics import median
+from entropy_calc import entropy_calc
 
 # Matcher Function returns number code
 # 1 - Letter exists and is in the right position
@@ -99,6 +100,13 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
 
     return list(filtered_wordlist)
 
+def get_wrd_maxentropy(entropylst, filtered_list):
+    # TODO Complete this function
+
+    for comb in entropylst:
+        maxentropywrd = filter(lambda w: all(list(comb) for comb in entropylst),filtered_list)
+    
+    return maxentropywrd
 
 LAYERS_KEY = "LAYERS_"
 
@@ -107,6 +115,7 @@ def get_next_guess(filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
 
+    
     # hist = Counter( "".join(word_list) )
     if len(filtered_list) == 1:
         return filtered_list[0]
@@ -124,6 +133,19 @@ def get_next_guess(filtered_list):
         # print("BRANCHES: ", json.dumps(branches, indent=4))
         return branches[0][0]
         # print(json.dumps(layer, indent=4))
+
+    # TODO: Entropy strategy 
+    print("Filtered list", filtered_list)
+    # entropylst = entropy_calc(filtered_list)
+    # nextguess = get_wrd_maxentropy(entropylst, filtered_list)
+
+    # Guess highest occuring word
+    nextguess = sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
+    # return wordlist[0]
+    # return random.choice(filtered_list)
+    
+    return nextguess
+    
 
     return sorted(filtered_list, key=lambda a: word_frequency(a, "en"))[-1]
 
@@ -214,7 +236,7 @@ if __name__ == "__main__":
     #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
     #     )
 
-    for _ in range(200):
+    for _ in range(20):
 
         corpos_dict = {}  # Correct position dict
         gl_dict = {}  # Good letters dict
