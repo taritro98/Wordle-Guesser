@@ -51,7 +51,7 @@ def fn_Wordle_Player(intmatcher, corpus, gl_dict, bl_set, corpos_dict):
     filtered_list = letter_filter(
         corpus, bl_set=bl_set, gl_dict=gl_dict, corpos_dict=corpos_dict
     )
-    print("length of filtered_list: ", len(filtered_list))
+    print("filtered_list: ", filtered_list)
 
 
     guess = get_next_guess(corpos_dict, filtered_list)
@@ -64,23 +64,25 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
     # Filter out the words with incorrect good letter positioning - 2 ranked letters
     # Filter words with good letters present in wordlist
 
-    filtered_wordlist = []
+    filtered_wordlist = wordlist
 
     if bl_set:
         filtered_wordlist = filter(
-            lambda w: not any(bltr in w for bltr in bl_set), wordlist
+            lambda w: all(bltr not in w for bltr in bl_set), filtered_wordlist
         )
 
+    print("gl_dict: ", gl_dict)
     if gl_dict:
+
         filtered_wordlist = filter(
-            lambda w: not any(
-                w[gl_idx] == gl_val for gl_idx, gl_val in gl_dict.items()
-            ),
+            lambda w: all(gltr in w for gltr in gl_dict.values()),
             filtered_wordlist,
         )
 
         filtered_wordlist = filter(
-            lambda w: any(gltr in w for gltr in gl_dict.values()),
+            lambda w: all(
+                w[gl_idx] != gl_val for gl_idx, gl_val in gl_dict.items()
+            ),
             filtered_wordlist,
         )
 
@@ -96,7 +98,7 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
 def get_next_guess(corpos_dict, filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
-    # word_list = list( filter( filter_using_alphabets, words))
+
     # hist = Counter( "".join(word_list) )
 
     print("Filtered list", filtered_list)
@@ -136,7 +138,7 @@ if __name__ == "__main__":
 
         while len(theWord) != 5 or (theWord not in wordlist):
             theWord = (input('"Please input a valid 5 letter word: ')).upper()
-        for i in range(6):
+        for i in range(60):
             if i == 0:
                 # TODO: Initialization Function
                 # nextGuess = random.choice(wordlist).upper()
@@ -170,6 +172,41 @@ if __name__ == "__main__":
         print("")
 
     stat(res)
+
+# Main (Single)
+# corpos_dict = {}    # Correct position dict
+# gl_dict     = {}    # Good letters dict
+# bl_set      = set() # Bad letters set
+# corpus      = wordlist.copy()
+
+# if __name__ == "__main__":
+#     theWord = "RATES"
+#     for i in range(6):
+#         if i == 0:
+#             nextGuess = "RESAT"
+#         else:
+#             nextGuess, corpus, gl_dict, bl_set, corpos_dict = fn_Wordle_Player(
+#                 intMatcher, corpus, gl_dict, bl_set, corpos_dict
+#             )
+#             nextGuess = nextGuess.upper()
+#         if (
+#             nextGuess in wordlist and len(nextGuess) == 5
+#         ):  # wordlist defined by participant above
+#             if nextGuess == theWord:
+#                 print(nextGuess)
+#                 print("Word found on attempt ", i + 1)
+#                 break
+#             else:
+#                 intMatcher = fn_Matcher(theWord, nextGuess)
+#                 print(nextGuess)
+#                 print("Word does not match, Feedback pattern returned :", intMatcher)
+#         else:
+#             print(nextGuess, "Not a valid word")
+#             break
+#     else:
+#         print("Word not found. Correct word is", theWord)
+
+
 
 # Original Main
 # if __name__ == "__main__":
