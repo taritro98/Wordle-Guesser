@@ -24,12 +24,6 @@ g_gl_dict = {}  # Good letters dict
 g_bl_set = set()  # Bad letters set
 g_corpus = wordlist.copy()
 
-# Matcher Function returns number code
-# 1 - Letter exists and is in the right position
-# 2 - Letter exists but is in the wrong position
-# 3 - Letter is not present in the word
-
-
 def fn_Matcher(theWord, nextGuess):
     match = ""
     for i in range(5):
@@ -67,11 +61,6 @@ def fn_Wordle_Player(intmatcher, corpus, gl_dict, bl_set, corpos_dict):
     ## Call tree or entropy algo
     guess = get_next_guess(filtered_list)
     # guess = get_next_guess_entropy(filtered_list)
-
-    g_corpos_dict = corpos_dict
-    g_gl_dict = gl_dict
-    g_bl_set = bl_set
-    g_corpus = filtered_list
 
     return guess
 
