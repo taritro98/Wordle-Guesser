@@ -170,10 +170,10 @@ def get_next_guess(filtered_list):
             word_frequency(p[0], "en"),
         ),
     )[0]
-    # print("BRANCHES: ", json.dumps(greedy_branch, indent=4))
+
     greedy_word = greedy_branch[0]
     wl_layers = greedy_branch[1][LAYERS_KEY]
-    print("next guess: ", greedy_word, f"with {wl_layers} vs {c_layers} {guess}")
+
     return (
         guess
         if (c_layers <= wl_layers)
@@ -182,10 +182,6 @@ def get_next_guess(filtered_list):
         else greedy_word
     )
 
-    # TODO: Entropy strategy
-    # print("Filtered list", filtered_list)
-    # entropylst = entropy_calc(filtered_list)
-    # nextguess = get_wrd_maxentropy(entropylst, filtered_list)
 
 def build_tree(corpus, recurse=2, complete_wordlist=False):
     # TODO: we are only trying to look at corpus for further guesses. Maybe
@@ -251,9 +247,9 @@ def input_gen(wordlist):
 def stat(res):
     print("Output Stats ===> ", res)
     print("Average attempts: " + str(float(sum(res) / len(res))))
-    # plt.hist(res)
-    # plt.title("Average attempts: " + str(float(sum(res) / len(res))))
-    # plt.show()
+    plt.hist(res)
+    plt.title("Average attempts: " + str(float(sum(res) / len(res))))
+    plt.show()
 
 
 # Custom Main function
@@ -267,28 +263,21 @@ if __name__ == "__main__":
     #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
     #     )
 
-    for _ in range(100):
+    for _ in range(20):
 
         corpos_dict = {}  # Correct position dict
         gl_dict = {}  # Good letters dict
         bl_set = set()  # Bad letters set
         corpus = wordlist.copy()
 
-        # wordlist = wordlist.copy()
-        # theWord=input('Enter word of the day: ').upper()
         theWord = input_gen(wordlist)
-        # theWord = "SAFES"
-        # theWord = "YOUNG"
         print("Word of the Day is", theWord)
 
         while len(theWord) != 5 or (theWord not in wordlist):
             theWord = (input('"Please input a valid 5 letter word: ')).upper()
         for i in range(60):
             if i == 0:
-                # TODO: Initialization Function
-                # nextGuess = random.choice(wordlist).upper()
                 nextGuess = random.choice(["CRANE", "CRATE", "TRACE"])
-                # nextGuess = "RESAT"
             else:
                 nextGuess, corpus, gl_dict, bl_set, corpos_dict = fn_Wordle_Player(
                     intMatcher, corpus, gl_dict, bl_set, corpos_dict
