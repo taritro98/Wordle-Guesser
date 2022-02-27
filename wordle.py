@@ -12,13 +12,10 @@ with open("English.txt", "r") as fr:
 
 # Code Block 1
 import random
-import itertools
+from math import log
 import matplotlib.pyplot as plt
-import numpy as np
 import json
 from wordfreq import word_frequency
-from string import ascii_uppercase
-from statistics import median
 from entropy_calc import entropy_calc
 
 # Matcher Function returns number code
@@ -100,13 +97,17 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
 
     return list(filtered_wordlist)
 
+
 def get_wrd_maxentropy(entropylst, filtered_list):
     # TODO Complete this function
 
     for comb in entropylst:
-        maxentropywrd = filter(lambda w: all(list(comb) for comb in entropylst),filtered_list)
-    
+        maxentropywrd = filter(
+            lambda w: all(list(comb) for comb in entropylst), filtered_list
+        )
+
     return maxentropywrd
+
 
 LAYERS_KEY = "LAYERS_"
 
@@ -115,101 +116,131 @@ def get_next_guess(filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
 
-    
-    # hist = Counter( "".join(word_list) )
-    if len(filtered_list) == 1:
+    # print(filtered_list)
+    if len(set(filtered_list)) == 1:
         return filtered_list[0]
 
-    if len(filtered_list) < 500:
-        layer = build_tree(filtered_list, recurse=5 if len(filtered_list) < 25 else 1)
-        branches = sorted(
+    lookahead_feasible = len(filtered_list) < 50
+
+    if not lookahead_feasible:
+        layer = build_tree(
+            filtered_list,
+            recurse=0,
+            complete_wordlist=True,
+        )
+        greedy_branch = sorted(
             layer.items(),
             key=lambda p: (
-                p[1].get(LAYERS_KEY, 99),
-                -len(p[1]),
-                word_frequency(p[0], "en"),
+                p[1].get(LAYERS_KEY),
+                -(len(p[1])/p[1].get(LAYERS_KEY)),
+                -word_frequency(p[0], "en"),
             ),
-        )
-        # print("BRANCHES: ", json.dumps(branches, indent=4))
-        return branches[0][0]
-        # print(json.dumps(layer, indent=4))
+        )[0]
+        greedy_word = greedy_branch[0]
+        # max_layers = greedy_branch[1][LAYERS_KEY]
+        return greedy_word
 
-    # TODO: Entropy strategy 
-    print("Filtered list", filtered_list)
+    layer = build_tree(
+        filtered_list,
+        recurse=5 if len(filtered_list) < 25 else 3,
+        complete_wordlist=False,
+    )
+    branch = sorted(
+        layer.items(),
+        key=lambda p: (
+            p[1][LAYERS_KEY],
+            -(len(p[1])/p[1].get(LAYERS_KEY)),
+            -word_frequency(p[0], "en"),
+        ),
+    )[0]
+    guess = branch[0]
+    c_layers = branch[1][LAYERS_KEY]
+    # print(f"Layers : {layers}")
+
+    layer = build_tree(
+        filtered_list,
+        recurse=1,
+        complete_wordlist=True,
+    )
+    greedy_branch = sorted(
+        layer.items(),
+        key=lambda p: (
+            p[1].get(LAYERS_KEY),
+            -(len(p[1])/p[1].get(LAYERS_KEY)),
+            word_frequency(p[0], "en"),
+        ),
+    )[0]
+    # print("BRANCHES: ", json.dumps(greedy_branch, indent=4))
+    greedy_word = greedy_branch[0]
+    wl_layers = greedy_branch[1][LAYERS_KEY]
+    print("next guess: ", greedy_word, f"with {wl_layers} vs {c_layers} {guess}")
+    return (
+        guess
+        if (c_layers <= wl_layers)
+        else guess
+        if len(filtered_list) < 4
+        else greedy_word
+    )
+
+    # TODO: Entropy strategy
+    # print("Filtered list", filtered_list)
     # entropylst = entropy_calc(filtered_list)
     # nextguess = get_wrd_maxentropy(entropylst, filtered_list)
 
-    # Guess highest occuring word
-    nextguess = sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
-    # return wordlist[0]
-    # return random.choice(filtered_list)
-    
-    return nextguess
-    
-
-    return sorted(filtered_list, key=lambda a: word_frequency(a, "en"))[-1]
-
-
-def random_words_from_list():
-    # print(random.sample(list(filter(lambda w: 'H' in w.upper(), wordlist)), 5))
-    return list(
-        itertools.chain.from_iterable(
-            map(
-                lambda x: random.sample(
-                    (list(filter(lambda w: x in w.upper(), wordlist))), 2
-                ),
-                ascii_uppercase,
-            )
-        )
-    )
-
-
-alphabet_wordlist = list(
-    itertools.chain.from_iterable(
-        map(
-            lambda x: random.sample(
-                (list(filter(lambda w: x in w.upper(), wordlist))), 1
-            ),
-            ascii_uppercase,
-        )
-    )
-)
-
-
-def build_tree(corpus, recurse=2):
+def build_tree(corpus, recurse=2, complete_wordlist=False):
     # TODO: we are only trying to look at corpus for further guesses. Maybe
     # check with the whole dictionary?
     if len(corpus) == 1:
         return {LAYERS_KEY: 0}
     tree_layer = {}
-    for word in corpus:
+    guesses = (
+        filter(lambda word: len(set(word)) == 5, wordlist)
+        if complete_wordlist
+        else corpus
+    )
+    for guess in guesses:
         tree_node = {}
-        for guess in corpus + (alphabet_wordlist if len(corpus) > 20 else []):
-            val = fn_Matcher(word, guess)
-            if val not in tree_node:
-                tree_node[val] = [guess]
-            else:
-                tree_node[val].append(guess)
+        if recurse:
+            for word in corpus:
+                matcher = fn_Matcher(word, guess)
+                if matcher not in tree_node:
+                    tree_node[matcher] = [word]
+                else:
+                    tree_node[matcher].append(word)
+        else:
+            for word in corpus:
+                matcher = fn_Matcher(word, guess)
+                if matcher not in tree_node:
+                    tree_node[matcher] = {"COUNTS_": 1}
+                else:
+                    tree_node[matcher]["COUNTS_"] += 1
+
+            # guesstimating the number of layers here based on num of nodes left
+            layer_counts = []
+            for matcher in tree_node:
+                c = tree_node[matcher]["COUNTS_"]
+                # layer_counts.append(c)
+                # print(tree_node)
+                layer_counts.append(c * log(c, len(tree_node) + 1))
+            tree_node[LAYERS_KEY] = max(layer_counts) + 1
+
         # Recursion here
         if recurse:
             layers_counts = []
             for key in tree_node:
-                tree_node[key] = build_tree(tree_node[key], recurse=(recurse - 1))
-                # print("KKEY: ", key)
+                tree_node[key] = build_tree(
+                    tree_node[key],
+                    recurse=(recurse - 1),
+                    complete_wordlist=False,
+                )
                 if LAYERS_KEY in tree_node[key]:
                     layers_counts.append(tree_node[key][LAYERS_KEY] + 1)
                 elif isinstance(tree_node[key], dict):
-                    for k, v in tree_node[key].items():
-                        # print(v.get(LAYERS_KEY, 99))
-                        layers_counts.append(v.get(LAYERS_KEY, 99) + 1)
-                        # for d in v.values():
-                        #     print( d[LAYERS_KEY] )
-                else:
-                    layers_counts.append(99)
+                    for v in tree_node[key].values():
+                        layers_counts.append(v.get(LAYERS_KEY) + 1)
 
-            tree_node[LAYERS_KEY] = median(layers_counts)
-        tree_layer[word] = tree_node
-
+            tree_node[LAYERS_KEY] = max(layers_counts)
+        tree_layer[guess] = tree_node
     return tree_layer
 
 
@@ -236,7 +267,7 @@ if __name__ == "__main__":
     #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
     #     )
 
-    for _ in range(20):
+    for _ in range(100):
 
         corpos_dict = {}  # Correct position dict
         gl_dict = {}  # Good letters dict
@@ -246,6 +277,8 @@ if __name__ == "__main__":
         # wordlist = wordlist.copy()
         # theWord=input('Enter word of the day: ').upper()
         theWord = input_gen(wordlist)
+        # theWord = "SAFES"
+        # theWord = "YOUNG"
         print("Word of the Day is", theWord)
 
         while len(theWord) != 5 or (theWord not in wordlist):
@@ -254,7 +287,8 @@ if __name__ == "__main__":
             if i == 0:
                 # TODO: Initialization Function
                 # nextGuess = random.choice(wordlist).upper()
-                nextGuess = random.choice(["RESAT", "AROSE"])
+                nextGuess = random.choice(["CRANE", "CRATE", "TRACE"])
+                # nextGuess = "RESAT"
             else:
                 nextGuess, corpus, gl_dict, bl_set, corpos_dict = fn_Wordle_Player(
                     intMatcher, corpus, gl_dict, bl_set, corpos_dict
@@ -292,11 +326,11 @@ if __name__ == "__main__":
 # corpus = wordlist.copy()
 
 # if __name__ == "__main__":
-#     theWord = "HOODS"
+#     theWord = "BEARS"
 #     # theWord = input_gen(wordlist)
 #     for i in range(6):
 #         if i == 0:
-#             nextGuess = "RESAT"
+#             nextGuess = "AROSE"
 #         else:
 #             nextGuess, corpus, gl_dict, bl_set, corpos_dict = fn_Wordle_Player(
 #                 intMatcher, corpus, gl_dict, bl_set, corpos_dict
