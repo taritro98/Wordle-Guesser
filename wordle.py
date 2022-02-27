@@ -63,7 +63,9 @@ def fn_Wordle_Player(intmatcher, corpus, gl_dict, bl_set, corpos_dict):
 
     print("filter_list size", len(filtered_list))
 
-    guess = get_next_guess(filtered_list)
+	## Call tree or entropy algo
+    #guess = get_next_guess(filtered_list)
+    guess = get_next_guess_entropy(filtered_list)
 
     return guess, filtered_list, gl_dict, bl_set, corpos_dict
 
@@ -101,12 +103,31 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
     return list(filtered_wordlist)
 
 def get_wrd_maxentropy(entropylst, filtered_list):
-    # TODO Complete this function
+	'''
+	Iterates through filtered list and returns word with highest correlation with most occurring chars
+	Input : Word freq combination list, filtered list
+	Output : Highest entropy word
+	'''
+	for comb in entropylst:
+		# Iterate through list high to low entropy combinations
+		for maxentropywrd in filtered_list:
+			if all([combl in maxentropywrd for combl in list(comb)]):
+				# Break and return on detecting entropy word
+				return maxentropywrd
 
-    for comb in entropylst:
-        maxentropywrd = filter(lambda w: all(list(comb) for comb in entropylst),filtered_list)
-    
-    return maxentropywrd
+def get_next_guess_entropy(filtered_list):
+	'''
+	Call entropy calc and get maxentropy word functions and return max entropy word guess, else return max occurring word 
+	'''
+	print("Filtered list", filtered_list)
+	entropylst = entropy_calc(filtered_list)
+	nextguess = get_wrd_maxentropy(entropylst, filtered_list)
+
+	if nextguess:
+		return nextguess
+	
+	# Else return highest occurring word
+	return sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
 
 LAYERS_KEY = "LAYERS_"
 
@@ -114,7 +135,6 @@ LAYERS_KEY = "LAYERS_"
 def get_next_guess(filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
-
     
     # hist = Counter( "".join(word_list) )
     if len(filtered_list) == 1:
@@ -134,10 +154,7 @@ def get_next_guess(filtered_list):
         return branches[0][0]
         # print(json.dumps(layer, indent=4))
 
-    # TODO: Entropy strategy 
     print("Filtered list", filtered_list)
-    # entropylst = entropy_calc(filtered_list)
-    # nextguess = get_wrd_maxentropy(entropylst, filtered_list)
 
     # Guess highest occuring word
     nextguess = sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
@@ -146,10 +163,6 @@ def get_next_guess(filtered_list):
     
     return nextguess
     
-
-    return sorted(filtered_list, key=lambda a: word_frequency(a, "en"))[-1]
-
-
 def random_words_from_list():
     # print(random.sample(list(filter(lambda w: 'H' in w.upper(), wordlist)), 5))
     return list(
@@ -220,9 +233,9 @@ def input_gen(wordlist):
 def stat(res):
     print("Output Stats ===> ", res)
     print("Average attempts: " + str(float(sum(res) / len(res))))
-    # plt.hist(res)
-    # plt.title("Average attempts: " + str(float(sum(res) / len(res))))
-    # plt.show()
+    plt.hist(res)
+    plt.title("Average attempts: " + str(float(sum(res) / len(res))))
+    plt.show()
 
 
 # Custom Main function
@@ -236,7 +249,7 @@ if __name__ == "__main__":
     #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
     #     )
 
-    for _ in range(20):
+    for _ in range(100):
 
         corpos_dict = {}  # Correct position dict
         gl_dict = {}  # Good letters dict
@@ -254,7 +267,7 @@ if __name__ == "__main__":
             if i == 0:
                 # TODO: Initialization Function
                 # nextGuess = random.choice(wordlist).upper()
-                nextGuess = random.choice(["RESAT", "AROSE"])
+                nextGuess = random.choice(["AROSE"])
             else:
                 nextGuess, corpus, gl_dict, bl_set, corpos_dict = fn_Wordle_Player(
                     intMatcher, corpus, gl_dict, bl_set, corpos_dict
