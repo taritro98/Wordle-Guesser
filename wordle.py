@@ -60,7 +60,9 @@ def fn_Wordle_Player(intmatcher, corpus, gl_dict, bl_set, corpos_dict):
 
     print("filter_list size", len(filtered_list))
 
-    guess = get_next_guess(filtered_list)
+	## Call tree or entropy algo
+    #guess = get_next_guess(filtered_list)
+    guess = get_next_guess_entropy(filtered_list)
 
     return guess, filtered_list, gl_dict, bl_set, corpos_dict
 
@@ -99,14 +101,31 @@ def letter_filter(wordlist, bl_set={}, gl_dict={}, corpos_dict={}):
 
 
 def get_wrd_maxentropy(entropylst, filtered_list):
-    # TODO Complete this function
+	'''
+	Iterates through filtered list and returns word with highest correlation with most occurring chars
+	Input : Word freq combination list, filtered list
+	Output : Highest entropy word
+	'''
+	for comb in entropylst:
+		# Iterate through list high to low entropy combinations
+		for maxentropywrd in filtered_list:
+			if all([combl in maxentropywrd for combl in list(comb)]):
+				# Break and return on detecting entropy word
+				return maxentropywrd
 
-    for comb in entropylst:
-        maxentropywrd = filter(
-            lambda w: all(list(comb) for comb in entropylst), filtered_list
-        )
+def get_next_guess_entropy(filtered_list):
+	'''
+	Call entropy calc and get maxentropy word functions and return max entropy word guess, else return max occurring word 
+	'''
+	print("Filtered list", filtered_list)
+	entropylst = entropy_calc(filtered_list)
+	nextguess = get_wrd_maxentropy(entropylst, filtered_list)
 
-    return maxentropywrd
+	if nextguess:
+		return nextguess
+	
+	# Else return highest occurring word
+	return sorted(filtered_list, key=lambda a : word_frequency(a, 'en'))[-1]
 
 
 LAYERS_KEY = "LAYERS_"
@@ -115,9 +134,8 @@ LAYERS_KEY = "LAYERS_"
 def get_next_guess(filtered_list):
     # search wordlist for correct pos words and get the ones with maximum matches
     # TODO: Guess using either MRD or GEP strategy
-
-    # print(filtered_list)
-    if len(set(filtered_list)) == 1:
+    
+    if len(filtered_list) == 1:
         return filtered_list[0]
 
     lookahead_feasible = len(filtered_list) < 50
@@ -263,7 +281,7 @@ if __name__ == "__main__":
     #         map(str.upper, filter(lambda word: len(word) == 5, fr.read().splitlines()))
     #     )
 
-    for _ in range(20):
+    for _ in range(100):
 
         corpos_dict = {}  # Correct position dict
         gl_dict = {}  # Good letters dict

@@ -40,9 +40,10 @@ def gen_comb(ltr_count_list):
             
         comb_lst.extend(comb)
 
-        print(comb_lst)
         max_len-=1
     
+    print("Entropy Combination list",comb_lst)
+
     return comb_lst
 
 def entropy_calc(wordlist):
@@ -52,11 +53,21 @@ def entropy_calc(wordlist):
     '''
     rem_dup = list(map(lambda x:"".join(set(x)),wordlist))
     ltr_count_list = Counter("".join(rem_dup)).most_common(5)
+    print("Letter frequency ",ltr_count_list)
     most_com_ltrcombs = gen_comb(ltr_count_list)
     return most_com_ltrcombs
 
 if __name__=='__main__':
     wordlist = ['BLABY', 'BYLAW', 'BYWAY', 'DHABI', 'FLAIL', 'FLAKY', 'FUGAL', 'GUAVA', 'HILDA', 'ILIAD', 'JULIA', 'KHAKI', 'LIBYA', 'LLAMA', 'LYDIA', 'MIAMI', 'MUZAK', 'PHIAL', 'PIZZA', 'PLAID', 'PLAZA', 'PUKKA', 'PULAU', 'PUPAL', 'QUAFF', 'QUAIL', 'QUALM', 'UVULA', 'VILLA', 'VULVA', 'WILMA']
 
-    res = entropy_calc(wordlist)
-    print(res)
+    with open("English.txt", "r") as fr:
+        wordlist = list(map(str.upper,filter(lambda word: len(word) == 5 and "'" not in word, fr.read().splitlines()),))
+
+    entropylst = entropy_calc(wordlist)
+    print("most occuring",entropylst[0])
+
+    # Iterate through list high to low entropy combinations
+    for maxentropywrd in wordlist:
+        if all([combl in maxentropywrd for combl in list(entropylst[0])]):
+            # Break and return on detecting entropy word
+            print(maxentropywrd)
